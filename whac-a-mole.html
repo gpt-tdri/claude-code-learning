@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เกมตีตัวตุ่น</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #2d5a27;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      user-select: none;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+      text-shadow: 2px 2px 4px #000;
+    }
+
+    #scoreboard {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      background: rgba(0,0,0,0.4);
+      color: #fff;
+      padding: 8px 24px;
+      border-radius: 20px;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+
+    .stat span {
+      display: block;
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #ffe066;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(3, 130px);
+      grid-template-rows: repeat(3, 130px);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .hole {
+      background: #4a2e0a;
+      border-radius: 50%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: inset 0 8px 20px rgba(0,0,0,0.6);
+      position: relative;
+    }
+
+    .mole {
+      font-size: 4rem;
+      position: absolute;
+      bottom: -100%;
+      transition: bottom 0.1s ease;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .hole.active .mole {
+      bottom: 5%;
+    }
+
+    .hole.hit .mole {
+      bottom: 5%;
+      filter: brightness(0.5) sepia(1) hue-rotate(0deg);
+      transform: scale(1.3) rotate(-20deg);
+    }
+
+    #controls {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      padding: 12px 32px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.1s, opacity 0.1s;
+    }
+
+    button:active { transform: scale(0.95); }
+
+    #startBtn {
+      background: #ffe066;
+      color: #333;
+    }
+
+    #startBtn:hover { opacity: 0.9; }
+
+    select {
+      padding: 10px 16px;
+      font-size: 1rem;
+      border-radius: 20px;
+      border: none;
+      background: rgba(255,255,255,0.9);
+      cursor: pointer;
+    }
+
+    #message {
+      color: #ffe066;
+      font-size: 1.3rem;
+      margin-top: 16px;
+      font-weight: bold;
+      min-height: 28px;
+      text-shadow: 1px 1px 3px #000;
+    }
+
+    .boom {
+      position: absolute;
+      font-size: 2rem;
+      animation: boom 0.5s forwards;
+      pointer-events: none;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    @keyframes boom {
+      0%   { opacity: 1; transform: translateX(-50%) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) scale(2) translateY(-20px); }
+    }
+  </style>
+</head>
+<body>
+
+<h1>🔨 เกมตีตัวตุ่น</h1>
+
+<div id="scoreboard">
+  <div class="stat">คะแนน<span id="score">0</span></div>
+  <div class="stat">เวลา<span id="timer">30</span></div>
+  <div class="stat">พลาด<span id="misses">0</span></div>
+</div>
+
+<div id="grid"></div>
+
+<div id="controls">
+  <select id="difficulty">
+    <option value="easy">ง่าย</option>
+    <option value="normal" selected>ปกติ</option>
+    <option value="hard">ยาก</option>
+  </select>
+  <button id="startBtn">▶ เริ่มเกม</button>
+</div>
+
+<div id="message">กดเริ่มเกมเพื่อเล่น!</div>
+
+<script>
+  const HOLES = 9;
+  const DIFFICULTY = {
+    easy:   { showTime: 1200, interval: 1000 },
+    normal: { showTime: 800,  interval: 700  },
+    hard:   { showTime: 500,  interval: 450  },
+  };
+
+  const grid = document.getElementById('grid');
+  const scoreEl = document.getElementById('score');
+  const timerEl = document.getElementById('timer');
+  const missesEl = document.getElementById('misses');
+  const startBtn = document.getElementById('startBtn');
+  const diffSel = document.getElementById('difficulty');
+  const message = document.getElementById('message');
+
+  let holes = [];
+  let score = 0;
+  let misses = 0;
+  let timeLeft = 30;
+  let gameActive = false;
+  let moleTimeout = null;
+  let spawnInterval = null;
+  let countdown = null;
+  let currentHole = null;
+
+  // Build grid
+  for (let i = 0; i < HOLES; i++) {
+    const hole = document.createElement('div');
+    hole.className = 'hole';
+    hole.innerHTML = '<div class="mole">🐹</div>';
+    hole.dataset.index = i;
+    hole.addEventListener('click', whack);
+    grid.appendChild(hole);
+    holes.push(hole);
+  }
+
+  function randomHole() {
+    const available = holes.filter(h => !h.classList.contains('active') && !h.classList.contains('hit'));
+    if (available.length === 0) return null;
+    return available[Math.floor(Math.random() * available.length)];
+  }
+
+  function showMole() {
+    const hole = randomHole();
+    if (!hole) return;
+
+    currentHole = hole;
+    hole.classList.add('active');
+    const { showTime } = DIFFICULTY[diffSel.value];
+
+    moleTimeout = setTimeout(() => {
+      if (hole.classList.contains('active')) {
+        hole.classList.remove('active');
+        misses++;
+        missesEl.textContent = misses;
+      }
+    }, showTime);
+  }
+
+  function whack(e) {
+    if (!gameActive) return;
+    const hole = e.currentTarget;
+    if (!hole.classList.contains('active') || hole.classList.contains('hit')) return;
+
+    clearTimeout(moleTimeout);
+    hole.classList.remove('active');
+    hole.classList.add('hit');
+
+    score++;
+    scoreEl.textContent = score;
+
+    // Boom effect
+    const boom = document.createElement('div');
+    boom.className = 'boom';
+    boom.textContent = '💥';
+    hole.appendChild(boom);
+    boom.addEventListener('animationend', () => boom.remove());
+
+    setTimeout(() => hole.classList.remove('hit'), 400);
+  }
+
+  function startGame() {
+    if (gameActive) return;
+
+    // Reset
+    score = 0; misses = 0; timeLeft = 30;
+    scoreEl.textContent = 0;
+    missesEl.textContent = 0;
+    timerEl.textContent = 30;
+    message.textContent = '';
+    holes.forEach(h => { h.classList.remove('active', 'hit'); });
+
+    gameActive = true;
+    startBtn.disabled = true;
+    diffSel.disabled = true;
+
+    const { interval } = DIFFICULTY[diffSel.value];
+    spawnInterval = setInterval(showMole, interval);
+
+    countdown = setInterval(() => {
+      timeLeft--;
+      timerEl.textContent = timeLeft;
+      if (timeLeft <= 0) endGame();
+    }, 1000);
+  }
+
+  function endGame() {
+    gameActive = false;
+    clearInterval(spawnInterval);
+    clearInterval(countdown);
+    clearTimeout(moleTimeout);
+    holes.forEach(h => h.classList.remove('active', 'hit'));
+
+    let grade = '';
+    if (score >= 30) grade = '🏆 เยี่ยมมาก!';
+    else if (score >= 20) grade = '⭐ ดีมาก!';
+    else if (score >= 10) grade = '👍 ไม่เลว!';
+    else grade = '💪 ลองอีกครั้ง!';
+
+    message.textContent = `จบแล้ว! คะแนน ${score} แต้ม — ${grade}`;
+    startBtn.disabled = false;
+    diffSel.disabled = false;
+  }
+
+  startBtn.addEventListener('click', startGame);
+</script>
+</body>
+</html>
