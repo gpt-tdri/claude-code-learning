@@ -2,20 +2,36 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Running the Code
+## เกี่ยวกับโปรเจคนี้
 
-**Python script:**
+โปรเจคนี้คือการเรียนรู้ Claude Code สำหรับมือใหม่ เน้นการทดลองเขียนโค้ด Python และฝึกใช้งาน Claude Code ในชีวิตประจำวัน
+
+## ภาษาที่ใช้
+
+- ภาษาโปรแกรมหลัก: **Python**
+- ตอบและ comment โค้ดเป็น **ภาษาไทยเสมอ**
+
+## กฎสำหรับ Claude Code
+
+1. **ตอบเป็นภาษาไทยเสมอ** รวมถึง comment ในโค้ดทุกไฟล์
+2. **ทุกครั้งที่สร้างไฟล์ใหม่ให้ commit git อัตโนมัติ** พร้อมข้อความ commit ที่สื่อความหมาย
+3. **ถ้าโค้ดมี bug ให้อธิบายสาเหตุก่อนแก้เสมอ** เพื่อให้ผู้เรียนเข้าใจที่มาของปัญหา
+
+## การรันโค้ด
+
 ```
-python hello.py
+python <ชื่อไฟล์>.py
 ```
-No dependencies required. The script uses `sys.stdout` with UTF-8 encoding to print Thai text.
 
-**HTML game:**
-Open `whac-a-mole.html` directly in a browser — no server needed.
+ไฟล์ HTML เปิดใน browser ได้เลย ไม่ต้องใช้ server
 
-## Project Overview
+## ไฟล์ในโปรเจค
 
-Two standalone files, no build process, no package manager, no external dependencies.
-
-- `hello.py` — Hello World in Thai (สวัสดีโลก), demonstrates UTF-8 output on Windows via `sys.stdout`.
-- `whac-a-mole.html` — Self-contained Whac-A-Mole game (เกมตีตัวตุ่น) in Thai. All CSS and JavaScript are inlined. Game logic includes a 3×3 mole grid, three difficulty levels, a 30-second timer, score/miss tracking, and end-of-game grading. No external assets or libraries.
+| ไฟล์ | คำอธิบาย |
+|------|----------|
+| `hello.py` | Hello World ภาษาไทย ฝึก UTF-8 encoding บน Windows |
+| `whac-a-mole.html` | เกมตีตัวตุ่น ตาราง 3×3 มีระดับความยาก 3 ระดับ จับเวลา 30 วินาที |
+| `buggy.py` | ตัวอย่างโค้ดที่มี bug 3 ประเภท (syntax, logic, runtime) สำหรับฝึกหา bug |
+| `calculator.py` | เครื่องคิดเลข 4 ฟังก์ชัน รองรับเลขทศนิยม มี input validation |
+| `contacts.py` | โมดูลสมุดโทรศัพท์ — เก็บข้อมูลและฟังก์ชันทั้งหมด บันทึกลง JSON |
+| `main.py` | หน้าเมนูสมุดโทรศัพท์ — เพิ่ม ลบ ค้นหา แสดงรายชื่อ |
