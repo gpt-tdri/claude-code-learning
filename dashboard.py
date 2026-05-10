@@ -172,6 +172,11 @@ html = f"""<!DOCTYPE html>
 
     /* FOOTER */
     footer {{ text-align:center; padding:20px; font-size:.78em; color:var(--muted); border-top:1px solid var(--border); margin-top:8px }}
+
+    @keyframes pulse {{
+      0%,100% {{ opacity:1; transform:scale(1) }}
+      50%      {{ opacity:.4; transform:scale(1.4) }}
+    }}
   </style>
 </head>
 <body>
@@ -184,7 +189,11 @@ html = f"""<!DOCTYPE html>
     </div>
     <div class="header-meta">
       <div style="color:var(--text);font-weight:600">{datetime.now().strftime('%d %B %Y')}</div>
-      <div>อัปเดต {datetime.now().strftime('%H:%M')} น.</div>
+      <div>อัปเดตล่าสุด <span id="last-updated">{datetime.now().strftime('%H:%M:%S')} น.</span></div>
+      <div style="margin-top:4px">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:4px;animation:pulse 2s infinite"></span>
+        รีเฟรชในอีก <span id="countdown" style="color:#34d399;font-weight:700">60</span> วินาที
+      </div>
     </div>
   </div>
 </header>
@@ -241,9 +250,21 @@ html = f"""<!DOCTYPE html>
 
 </main>
 
-<footer>Dashboard ส่วนตัว &nbsp;·&nbsp; สร้างโดย dashboard.py &nbsp;·&nbsp; {datetime.now().strftime('%d/%m/%Y %H:%M')} น.</footer>
+<footer>Dashboard ส่วนตัว &nbsp;·&nbsp; สร้างโดย dashboard.py &nbsp;·&nbsp; อัปเดตล่าสุด {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} น. &nbsp;·&nbsp; รีเฟรชอัตโนมัติทุก 60 วินาที</footer>
 
 <script>
+// ── Auto-refresh countdown ─────────────────────────────────────────────────
+(function() {{
+  const INTERVAL = 60;
+  let remaining = INTERVAL;
+  const el = document.getElementById('countdown');
+  setInterval(() => {{
+    remaining -= 1;
+    if (el) el.textContent = remaining;
+    if (remaining <= 0) location.reload();
+  }}, 1000);
+}})();
+
 Chart.defaults.color = '#64748b';
 Chart.defaults.borderColor = '#334155';
 
