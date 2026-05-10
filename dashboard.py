@@ -6,20 +6,41 @@ if isinstance(sys.stdout, io.TextIOWrapper):
 import json
 import os
 import re
-from datetime import datetime
+from datetime import datetime, date
 
 OUTPUT_FILE   = "dashboard.html"
-FINANCE_FILE  = "finance_data.json"
+EXCEL_FILE    = "expenses.xlsx"
 GOLD_LOG_FILE = "gold_price_log.txt"
 
-# ── อ่านข้อมูลรายรับรายจ่าย ───────────────────────────────────────────────────
+# ── อ่านข้อมูลรายรับรายจ่ายจาก Excel ─────────────────────────────────────────
 def อ่านการเงิน():
-    if not os.path.exists(FINANCE_FILE):
+    if not os.path.exists(EXCEL_FILE):
         return []
     try:
-        with open(FINANCE_FILE, encoding="utf-8") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, IOError):
+        from openpyxl import load_workbook
+        wb = load_workbook(EXCEL_FILE, data_only=True)
+        ธุรกรรม = []
+        for ประเภท, sheet_name in [("รายรับ", "รายรับ"), ("รายจ่าย", "รายจ่าย")]:
+            if sheet_name not in wb.sheetnames:
+                continue
+            ws = wb[sheet_name]
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                วันที่, รายการ, จำนวน, *_ = row
+                if รายการ is None or จำนวน is None:
+                    continue
+                if isinstance(วันที่, (datetime, date)):
+                    วันที่_str = วันที่.strftime("%Y-%m-%d")
+                else:
+                    วันที่_str = str(วันที่) if วันที่ else ""
+                ธุรกรรม.append({
+                    "ประเภท":    ประเภท,
+                    "คำอธิบาย": str(รายการ),
+                    "จำนวนเงิน": float(จำนวน),
+                    "วันที่":    วันที่_str,
+                })
+        ธุรกรรม.sort(key=lambda t: t["วันที่"])
+        return ธุรกรรม
+    except Exception:
         return []
 
 # ── อ่านราคาทองล่าสุดจาก log ──────────────────────────────────────────────────
