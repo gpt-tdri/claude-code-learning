@@ -133,34 +133,56 @@ html = f"""<!DOCTYPE html>
   <title>Dashboard ส่วนตัว</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
+    /* LIGHT MODE (default) */
     :root {{
-      --bg:      #0f172a;
-      --surface: #1e293b;
-      --surface2:#273549;
-      --border:  #334155;
-      --text:    #e2e8f0;
+      --bg:      #f8fafc;
+      --surface: #ffffff;
+      --surface2:#f1f5f9;
+      --border:  #e2e8f0;
+      --text:    #0f172a;
       --muted:   #64748b;
+      --blue:    #2563eb;
+      --green:   #059669;
+      --red:     #dc2626;
+      --gold:    #d97706;
+      --header:  linear-gradient(135deg,#1e3a8a,#3b82f6 80%);
+      --td-sep:  #f1f5f9;
+    }}
+    /* DARK MODE */
+    [data-theme="dark"] {{
+      --bg:      #0a0a0a;
+      --surface: #111111;
+      --surface2:#1c1c1c;
+      --border:  #2a2a2a;
+      --text:    #ffffff;
+      --muted:   #888888;
       --blue:    #3b82f6;
       --green:   #34d399;
       --red:     #f87171;
       --gold:    #fbbf24;
+      --header:  linear-gradient(135deg,#0a0a0a,#1e3a8a 80%);
+      --td-sep:  #1c1c1c;
     }}
     * {{ box-sizing:border-box; margin:0; padding:0 }}
-    body {{ background:var(--bg); color:var(--text); font-family:'Segoe UI',sans-serif; min-height:100vh }}
+    body {{ background:var(--bg); color:var(--text); font-family:'Segoe UI',sans-serif; min-height:100vh; transition:background .25s,color .25s }}
 
     /* HEADER */
-    header {{ background:linear-gradient(135deg,#0f172a,#1e3a8a 80%); padding:0 32px; border-bottom:1px solid var(--border) }}
+    header {{ background:var(--header); padding:0 32px; border-bottom:1px solid var(--border) }}
     .header-inner {{ max-width:1200px; margin:0 auto; padding:20px 0; display:flex; justify-content:space-between; align-items:center }}
-    .header-title {{ font-size:1.4em; font-weight:700; letter-spacing:.02em }}
-    .header-title span {{ color:var(--blue) }}
-    .header-meta {{ font-size:.82em; color:var(--muted); text-align:right }}
+    .header-title {{ font-size:1.4em; font-weight:700; letter-spacing:.02em; color:#fff }}
+    .header-title span {{ color:#93c5fd }}
+    .header-meta {{ font-size:.82em; color:#cbd5e1; text-align:right }}
+
+    /* TOGGLE BUTTON */
+    .theme-btn {{ background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:99px; padding:6px 14px; font-size:.8em; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background .2s; white-space:nowrap }}
+    .theme-btn:hover {{ background:rgba(255,255,255,.25) }}
 
     /* LAYOUT */
     main {{ max-width:1200px; margin:0 auto; padding:28px 24px }}
 
     /* STAT CARDS */
     .stats {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:28px }}
-    .stat-card {{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 24px }}
+    .stat-card {{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 24px; transition:background .25s,border-color .25s }}
     .stat-icon {{ font-size:1.5em; margin-bottom:8px }}
     .stat-label {{ font-size:.78em; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.06em }}
     .stat-value {{ font-size:1.8em; font-weight:700; line-height:1 }}
@@ -171,7 +193,7 @@ html = f"""<!DOCTYPE html>
     @media(max-width:700px){{ .grid2{{ grid-template-columns:1fr }} }}
 
     /* CARD */
-    .card {{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px }}
+    .card {{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px; transition:background .25s,border-color .25s }}
     .card-title {{ font-size:.85em; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:20px }}
 
     /* TOP EXPENSES */
@@ -186,7 +208,7 @@ html = f"""<!DOCTYPE html>
     /* TABLE */
     table {{ width:100%; border-collapse:collapse; font-size:.88em }}
     th {{ text-align:left; padding:10px 12px; color:var(--muted); font-weight:600; font-size:.8em; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border) }}
-    td {{ padding:11px 12px; border-bottom:1px solid #1e293b; vertical-align:middle }}
+    td {{ padding:11px 12px; border-bottom:1px solid var(--td-sep); vertical-align:middle }}
     tr:last-child td {{ border-bottom:none }}
     tr:hover td {{ background:var(--surface2) }}
     .badge {{ padding:2px 10px; border-radius:99px; font-size:.78em; font-weight:600 }}
@@ -206,14 +228,19 @@ html = f"""<!DOCTYPE html>
   <div class="header-inner">
     <div>
       <div class="header-title">&#9685; Dashboard <span>ส่วนตัว</span></div>
-      <div style="font-size:.8em;color:var(--muted);margin-top:2px">ภาพรวมการเงินและข้อมูลทรัพย์สิน</div>
+      <div style="font-size:.8em;color:#94a3b8;margin-top:2px">ภาพรวมการเงินและข้อมูลทรัพย์สิน</div>
     </div>
-    <div class="header-meta">
-      <div style="color:var(--text);font-weight:600">{datetime.now().strftime('%d %B %Y')}</div>
-      <div>อัปเดตล่าสุด <span id="last-updated">{datetime.now().strftime('%H:%M:%S')} น.</span></div>
-      <div style="margin-top:4px">
-        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:4px;animation:pulse 2s infinite"></span>
-        รีเฟรชในอีก <span id="countdown" style="color:#34d399;font-weight:700">60</span> วินาที
+    <div style="display:flex;align-items:center;gap:20px">
+      <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span> <span id="themeLabel">Dark Mode</span>
+      </button>
+      <div class="header-meta">
+        <div style="color:#fff;font-weight:600">{datetime.now().strftime('%d %B %Y')}</div>
+        <div>อัปเดตล่าสุด <span id="last-updated">{datetime.now().strftime('%H:%M:%S')} น.</span></div>
+        <div style="margin-top:4px">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:4px;animation:pulse 2s infinite"></span>
+          รีเฟรชในอีก <span id="countdown" style="color:#34d399;font-weight:700">60</span> วินาที
+        </div>
       </div>
     </div>
   </div>
@@ -274,6 +301,21 @@ html = f"""<!DOCTYPE html>
 <footer>Dashboard ส่วนตัว &nbsp;·&nbsp; สร้างโดย dashboard.py &nbsp;·&nbsp; อัปเดตล่าสุด {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} น. &nbsp;·&nbsp; รีเฟรชอัตโนมัติทุก 60 วินาที</footer>
 
 <script>
+// ── Dark / Light mode toggle ───────────────────────────────────────────────
+function applyTheme(dark) {{
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('themeIcon').textContent  = dark ? '☀️' : '🌙';
+  document.getElementById('themeLabel').textContent = dark ? 'Light Mode' : 'Dark Mode';
+}}
+function toggleTheme() {{
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const next = !isDark;
+  localStorage.setItem('theme', next ? 'dark' : 'light');
+  applyTheme(next);
+}}
+// โหลดค่าที่บันทึกไว้ (default = light)
+applyTheme(localStorage.getItem('theme') === 'dark');
+
 // ── Auto-refresh countdown ─────────────────────────────────────────────────
 (function() {{
   const INTERVAL = 60;
