@@ -70,6 +70,8 @@ def ป้ายสถานะ(ส):
     return f'<span style="display:inline-flex;align-items:center;gap:4px;background:{สี}18;color:{สี};border:1px solid {สี}44;padding:3px 10px;border-radius:99px;font-size:.78em;font-weight:600">{ไอคอน} {ส}</span>'
 
 def เหลือกี่วัน(ป):
+    if ป["สถานะ"] == "เสร็จแล้ว":
+        return '<span style="color:#10b981;font-weight:600">✓ ส่งงานเรียบร้อย</span>'
     วัน = (ป["สิ้นสุด"] - วันนี้).days
     if วัน < 0:
         return f'<span style="color:#ef4444;font-weight:600">เลยกำหนด {abs(วัน)} วัน</span>'
