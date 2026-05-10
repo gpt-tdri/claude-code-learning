@@ -6,17 +6,28 @@ if isinstance(sys.stdout, io.TextIOWrapper):
 import csv
 
 # อ่านข้อมูลจากไฟล์ CSV แล้วเก็บเป็น list ของ dict
-นักเรียน = []
-with open("students.csv", encoding="utf-8") as f:
-    for แถว in csv.DictReader(f):
-        # แปลงคะแนนจาก string เป็น int
-        นักเรียน.append({
-            "ชื่อ":           แถว["ชื่อ"],
-            "อายุ":           int(แถว["อายุ"]),
-            "คะแนนคณิต":     int(แถว["คะแนนคณิต"]),
-            "คะแนนภาษาไทย":  int(แถว["คะแนนภาษาไทย"]),
-            "คะแนนวิทย์":    int(แถว["คะแนนวิทย์"]),
-        })
+try:
+    นักเรียน = []
+    with open("students.csv", encoding="utf-8") as f:
+        for แถว in csv.DictReader(f):
+            try:
+                # แปลงคะแนนจาก string เป็น int — ถ้าข้อมูลไม่ใช่ตัวเลขให้ข้ามแถวนั้น
+                นักเรียน.append({
+                    "ชื่อ":           แถว["ชื่อ"],
+                    "อายุ":           int(แถว["อายุ"]),
+                    "คะแนนคณิต":     int(แถว["คะแนนคณิต"]),
+                    "คะแนนภาษาไทย":  int(แถว["คะแนนภาษาไทย"]),
+                    "คะแนนวิทย์":    int(แถว["คะแนนวิทย์"]),
+                })
+            except (ValueError, KeyError) as e:
+                print(f"  คำเตือน: ข้ามแถว '{แถว.get('ชื่อ', '?')}' — ข้อมูลไม่ถูกต้อง ({e})")
+except FileNotFoundError:
+    print("ไม่พบไฟล์ students.csv — กรุณาตรวจสอบว่าไฟล์อยู่ในโฟลเดอร์เดียวกัน")
+    sys.exit(1)
+
+if not นักเรียน:
+    print("ไม่มีข้อมูลนักเรียนที่ถูกต้อง ไม่สามารถวิเคราะห์ได้")
+    sys.exit(1)
 
 # คำนวณคะแนนรวมของนักเรียนแต่ละคน
 for น in นักเรียน:
@@ -63,9 +74,11 @@ for น in นักเรียน:
 ]
 
 # พิมพ์ออกหน้าจอและบันทึกลงไฟล์พร้อมกันในลูปเดียว
-with open("report.txt", "w", encoding="utf-8") as f:
-    for บรรทัดนี้ in บรรทัด:
-        print(บรรทัดนี้)
-        f.write(บรรทัดนี้ + "\n")
-
-print("\n  บันทึกผลลงไฟล์ report.txt เรียบร้อย")
+try:
+    with open("report.txt", "w", encoding="utf-8") as f:
+        for บรรทัดนี้ in บรรทัด:
+            print(บรรทัดนี้)
+            f.write(บรรทัดนี้ + "\n")
+    print("\n  บันทึกผลลงไฟล์ report.txt เรียบร้อย")
+except PermissionError:
+    print("\n  ไม่สามารถบันทึก report.txt ได้ — ไฟล์อาจถูกเปิดอยู่ในโปรแกรมอื่น")

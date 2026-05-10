@@ -47,9 +47,11 @@ for ชื่อไฟล์ in ไฟล์ทั้งหมด:
 บรรทัดผลลัพธ์.append("=" * 50)
 
 # แสดงผลหน้าจอและบันทึกลง summary.txt พร้อมกัน
-with open("summary.txt", "w", encoding="utf-8") as f:
-    for บรรทัดนี้ in บรรทัดผลลัพธ์:
-        print(บรรทัดนี้)
-        f.write(บรรทัดนี้ + "\n")
-
-print("\nบันทึกลง summary.txt เรียบร้อย")
+try:
+    with open("summary.txt", "w", encoding="utf-8") as f:
+        for บรรทัดนี้ in บรรทัดผลลัพธ์:
+            print(บรรทัดนี้)
+            f.write(บรรทัดนี้ + "\n")
+    print("\nบันทึกลง summary.txt เรียบร้อย")
+except PermissionError:
+    print("\nไม่สามารถบันทึก summary.txt ได้ — ไฟล์อาจถูกเปิดอยู่ในโปรแกรมอื่น")

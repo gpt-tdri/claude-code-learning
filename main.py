@@ -31,12 +31,18 @@ def menu_add():
 
 def menu_delete():
     name = input("ชื่อที่ต้องการลบ: ").strip()
+    if not name:
+        print("กรุณาใส่ชื่อที่ต้องการลบ")
+        return
     ok, msg = contacts.delete_contact(name)
     print(msg)
 
 
 def menu_search():
     keyword = input("ค้นหาชื่อ: ").strip()
+    if not keyword:
+        print("กรุณาใส่คำค้นหา")
+        return
     results = contacts.search_contact(keyword)
     print(f"\nพบ {len(results)} รายการ:")
     show_contacts(results)

@@ -6,8 +6,12 @@ DATA_FILE = "contacts_data.json"
 
 def _load():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(DATA_FILE, encoding="utf-8") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            print(f"คำเตือน: ไฟล์ {DATA_FILE} เสียหาย — เริ่มต้นด้วยข้อมูลว่าง")
+            return {}
     return {}
 
 
